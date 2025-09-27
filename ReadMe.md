@@ -1,291 +1,376 @@
-# LIN Protocol - Smart Contracts
+# OffGridPay Smart Contract
 
-**LIN (Ledger Integrated Notes) Protocol v2.0**  
-**Platform:** Flow Blockchain  
-**Framework:** Cadence Smart Contracts  
-**Status:** ✅ **DEPLOYED ON FLOW TESTNET**
+**Offline Payment System for React Native Applications**  
+**Platform:** FlowEVM (Flow's EVM-compatible blockchain)  
+**Framework:** Solidity Smart Contracts  
+**Status:** 🚀 **READY FOR INTEGRATION**
 
 ## 🚀 Deployment Information
 
 **Contract Address:** `0x5495134c932c7e8a`  
-**Network:** Flow Testnet  
-**Deployment Date:** January 27, 2025  
-**Status:** Active and Verified ✅
+**Network:** FlowEVM Testnet  
+**Chain ID:** 545  
+**Status:** Ready for Deployment ⚡
 
 ## Overview
 
-LIN Protocol enables offline cryptocurrency transactions through Bluetooth peer-to-peer communication, with automatic blockchain synchronization when users come online. The system maintains transaction integrity through cryptographic signatures and manages gas costs via FLOW token deposits.
+OffGridPay enables secure offline payments in mobile applications with seamless blockchain synchronization. Perfect for React Native apps that need to work in areas with poor connectivity. The system maintains transaction integrity through cryptographic signatures and manages gas costs via FLOW token deposits.
+
+## 📱 React Native Integration Ready
+
+OffGridPay is specifically designed for React Native mobile applications that need to work in areas with poor connectivity.
+
+### Key Features
+✅ **Offline Transaction Processing**: Create and store transactions without internet  
+✅ **Batch Synchronization**: Sync multiple transactions when connection is restored  
+✅ **Secure Wallet Integration**: Built-in deposit and withdrawal management  
+✅ **Cryptographic Security**: ECDSA signature validation for all transactions  
+✅ **Anti-Fraud Protection**: Replay attack prevention and nonce-based security  
+✅ **Mobile Optimized**: Designed specifically for React Native applications
 
 ## Project Structure
 
 ```
-├── contracts/                 # Cadence smart contracts
-│   ├── LINProtocol.cdc       # Main protocol contract
-│   ├── OfflineTransactionValidator.cdc  # Transaction validation
-│   └── FlowDepositManager.cdc # FLOW deposit management
-├── scripts/                   # Read-only blockchain queries
-├── transactions/              # Blockchain state-changing operations
-├── tests/                     # Contract unit tests
-├── flow.json                  # Flow project configuration
-└── SmartContract.md          # Detailed technical specifications
+├── contracts/                 # Solidity smart contracts
+│   └── OffGridPayEVM.sol     # Main OffGridPay contract
+├── scripts/                   # Deployment scripts
+├── test/                      # Contract unit tests
+├── hardhat.config.js         # Hardhat configuration
+├── package.json              # Dependencies
+└── README.md                 # Integration guide
 ```
 
-## Core Features
+## 🚀 Quick Start
 
-- **Offline Transactions**: Create and transfer transactions via Bluetooth
-- **Batch Synchronization**: Efficient blockchain sync when online
-- **FLOW Deposit Management**: Pre-funded gas for seamless processing
-- **Cryptographic Security**: Signature-based transaction validation
-- **Replay Protection**: Nonce-based security mechanisms
+### Prerequisites
+- Node.js v16 or higher
+- npm or yarn
+- FlowEVM wallet with FLOW tokens
 
-## 🔧 Backend Integration Guide
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Copy environment file
+cp .env.example .env
+
+# Edit .env with your private key
+nano .env
+```
+
+### Configuration
+
+Edit `.env` file:
+```bash
+# Your wallet private key (without 0x prefix)
+PRIVATE_KEY=your_private_key_here
+
+# Optional: Enable gas reporting
+REPORT_GAS=true
+```
+
+## 🔧 React Native Integration Guide
 
 ### Contract Information
-- **Contract Name:** `LINProtocolComplete`
-- **Contract Address:** `0x5495134c932c7e8a`
-- **Network:** Flow Testnet
-- **FlowToken Address:** `0x7e60df042a9c0868`
+- **Contract Name:** `OffGridPayEVM`
+- **Network:** FlowEVM Testnet
+- **Chain ID:** 545
+- **RPC URL:** `https://testnet.evm.nodes.onflow.org`
 
 ### Required Dependencies
-```javascript
-// Flow SDK for JavaScript/Node.js
-npm install @onflow/fcl @onflow/types
+```bash
+# For React Native projects
+npm install ethers @react-native-async-storage/async-storage react-native-keychain @react-native-netinfo/netinfo
 
-// Flow configuration
-import * as fcl from "@onflow/fcl"
-
-fcl.config({
-  "accessNode.api": "https://rest-testnet.onflow.org", // Flow Testnet
-  "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn"
-})
+# For iOS
+cd ios && pod install
 ```
 
-### 📋 Contract Functions Reference
-
-#### 1. User Account Management
-
-**Initialize User Account** (Transaction)
-- Function: `initializeAccount(user: Address, flowDeposit: @FlowToken.Vault)`
-- Parameters:
-  - `user`: User's wallet address
-  - `flowDeposit`: FLOW tokens for fees (minimum 10.0 FLOW)
-- Returns: `@UserAccount` resource
-
-**Register Public Key** (Transaction)
-- Function: `registerPublicKey(user: Address, publicKey: String)`
-- Parameters:
-  - `user`: User's wallet address
-  - `publicKey`: User's public key for signature verification (64-256 chars)
-
-**Deposit FLOW Tokens** (Transaction)
-- Function: `depositFlow(user: Address, vault: @FlowToken.Vault)`
-- Parameters:
-  - `user`: User's wallet address
-  - `vault`: FLOW tokens to deposit
-
-**Withdraw FLOW Tokens** (Transaction)
-- Function: `withdrawFlow(user: Address, amount: UFix64)`
-- Parameters:
-  - `user`: User's wallet address
-  - `amount`: Amount to withdraw
-- Returns: `@FlowToken.Vault`
-
-#### 2. Offline Transaction Processing
-
-**Sync Offline Transaction Batch** (Transaction)
-- Function: `syncOfflineTransactions(batch: TransactionBatch)`
-- Parameters:
-  - `batch`: TransactionBatch struct containing:
-    - `batchId`: Unique batch identifier
-    - `submitter`: Address submitting the batch
-    - `transactions`: Array of OfflineTransaction structs
-- Returns: `Bool` (success/failure)
-
-**OfflineTransaction Structure**
+### Basic Setup
 ```javascript
-{
-  id: "unique-tx-id",           // String
-  from: "0x...",                // Address
-  to: "0x...",                  // Address  
-  amount: "10.50000000",        // UFix64 (8 decimals)
-  timestamp: 1640995200,        // UFix64 (Unix timestamp)
-  nonce: 1,                     // UInt64
-  signature: "crypto-sig...",   // String (64-256 chars)
-  status: 0                     // TransactionStatus enum
-}
+import { ethers } from 'ethers';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Keychain from 'react-native-keychain';
+
+// Contract configuration
+const CONTRACT_ADDRESS = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
+const CONTRACT_ABI = [...]; // From artifacts/contracts/OffGridPayEVM.sol/OffGridPayEVM.json
+
+// Initialize provider and contract
+const provider = new ethers.JsonRpcProvider('https://testnet.evm.nodes.onflow.org');
+const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 ```
 
-#### 3. Query Functions (Scripts)
+### 📋 Core Contract Functions
 
-**Get User Balance**
-- Function: `getBalance(user: Address)`
-- Parameters: `user` - User's wallet address
-- Returns: `UFix64` - Current balance
-
-**Get User Deposit Balance**
-- Function: `getDepositBalance(user: Address)`
-- Parameters: `user` - User's wallet address
-- Returns: `UFix64` - Available FLOW deposit
-
-**Get User Nonce**
-- Function: `getUserNonce(user: Address)`
-- Parameters: `user` - User's wallet address
-- Returns: `UInt64` - Current transaction nonce
-
-**Check User Status**
-- Function: `isUserActive(user: Address)`
-- Parameters: `user` - User's wallet address
-- Returns: `Bool` - Account active status
-
-**Get Protocol Statistics**
-- Functions:
-  - `getTotalUsers()` → `UInt64`
-  - `getTotalTransactions()` → `UInt64`
-  - `getTotalFlowDeposited()` → `UFix64`
-
-#### 4. Utility Functions
-
-**Calculate Transaction Fee**
-- Function: `calculateTransactionFee(amount: UFix64, isComplexTransaction: Bool)`
-- Returns: `UFix64` - Calculated fee
-
-**Calculate Batch Fee**
-- Function: `calculateBatchFee(transactionCount: Int)`
-- Returns: `UFix64` - Total batch processing fee
-
-**Validate Transaction Amount**
-- Function: `isValidTransactionAmount(amount: UFix64)`
-- Returns: `Bool` - Amount validity
-
-**Generate Transaction ID**
-- Function: `generateTransactionId(from: Address, to: Address, nonce: UInt64, timestamp: UFix64)`
-- Returns: `String` - Unique transaction ID
-
-## 📋 Technical Specifications
-
-- **Minimum FLOW Deposit**: 10.0 FLOW per user
-- **Max Batch Size**: 100 transactions  
-- **Transaction Validity**: 24 hours
-- **Base Transaction Fee**: 0.001 FLOW
-- **Max Transaction Amount**: 1,000,000 FLOW
-- **Signature Length**: 64-256 characters
-- **Max Nonce Skip**: 10 transactions
-- **Precision**: UFix64 (8 decimal places)
-
-## 🔧 JavaScript Integration Example
-
+#### Account Management
 ```javascript
-import * as fcl from "@onflow/fcl"
-import * as t from "@onflow/types"
-
-// Configure Flow
-fcl.config({
-  "accessNode.api": "https://rest-testnet.onflow.org",
-  "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn"
-})
-
-// Initialize user account
+// Initialize user account with FLOW deposit
 const initializeAccount = async (depositAmount) => {
-  const txId = await fcl.mutate({
-    cadence: `
-      import LINProtocolComplete from 0x5495134c932c7e8a
-      import FlowToken from 0x7e60df042a9c0868
-      
-      transaction(depositAmount: UFix64) {
-        prepare(signer: AuthAccount) {
-          let vaultRef = signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
-          let depositVault <- vaultRef.withdraw(amount: depositAmount)
-          
-          let userAccount <- LINProtocolComplete.initializeAccount(
-            user: signer.address,
-            flowDeposit: <-depositVault
-          )
-          
-          signer.save(<-userAccount, to: /storage/LINUserAccount)
-          signer.link<&LINProtocolComplete.UserAccount>(
-            /public/LINUserAccount,
-            target: /storage/LINUserAccount
-          )
-        }
-      }
-    `,
-    args: (arg, t) => [arg(depositAmount, t.UFix64)],
-    proposer: fcl.authz,
-    payer: fcl.authz,
-    authorizations: [fcl.authz],
-    limit: 1000
-  })
+  const wallet = new ethers.Wallet(privateKey, provider);
+  const contractWithSigner = contract.connect(wallet);
   
-  return txId
-}
+  const tx = await contractWithSigner.initializeAccount({ 
+    value: ethers.parseEther(depositAmount.toString()) 
+  });
+  await tx.wait();
+  return tx.hash;
+};
 
+// Add more FLOW deposit
+const addDeposit = async (amount) => {
+  const wallet = new ethers.Wallet(privateKey, provider);
+  const contractWithSigner = contract.connect(wallet);
+  
+  const tx = await contractWithSigner.addFlowDeposit({ 
+    value: ethers.parseEther(amount.toString()) 
+  });
+  await tx.wait();
+  return tx.hash;
+};
+
+// Withdraw FLOW deposit
+const withdrawDeposit = async (amount) => {
+  const wallet = new ethers.Wallet(privateKey, provider);
+  const contractWithSigner = contract.connect(wallet);
+  
+  const tx = await contractWithSigner.withdrawFlowDeposit(
+    ethers.parseEther(amount.toString())
+  );
+  await tx.wait();
+  return tx.hash;
+};
+```
+
+#### Offline Transaction Management
+
+```javascript
+// Store offline transaction locally
+const storeOfflineTransaction = async (transaction) => {
+  try {
+    const existingTxs = await AsyncStorage.getItem('offlineTransactions');
+    const transactions = existingTxs ? JSON.parse(existingTxs) : [];
+    transactions.push(transaction);
+    await AsyncStorage.setItem('offlineTransactions', JSON.stringify(transactions));
+  } catch (error) {
+    console.error('Error storing offline transaction:', error);
+  }
+};
+
+// Create offline transaction
+const createOfflineTransaction = async (fromAddress, toAddress, amount, privateKey) => {
+  const wallet = new ethers.Wallet(privateKey);
+  const nonce = await contract.getUserNonce(fromAddress);
+  
+  const transaction = {
+    id: ethers.keccak256(ethers.toUtf8Bytes(`${fromAddress}-${toAddress}-${nonce}-${Date.now()}`)),
+    from: fromAddress,
+    to: toAddress,
+    amount: ethers.parseEther(amount.toString()),
+    timestamp: Math.floor(Date.now() / 1000),
+    nonce: nonce + 1,
+    status: 0 // Pending
+  };
+  
+  // Sign transaction
+  const messageHash = ethers.solidityPackedKeccak256(
+    ['string', 'address', 'address', 'uint256', 'uint256', 'uint256'],
+    [transaction.id, transaction.from, transaction.to, transaction.amount, transaction.timestamp, transaction.nonce]
+  );
+  transaction.signature = await wallet.signMessage(ethers.getBytes(messageHash));
+  
+  await storeOfflineTransaction(transaction);
+  return transaction;
+};
+
+// Sync offline transactions when online
+const syncOfflineTransactions = async (privateKey) => {
+  try {
+    const storedTxs = await AsyncStorage.getItem('offlineTransactions');
+    if (!storedTxs) return;
+    
+    const transactions = JSON.parse(storedTxs);
+    const pendingTxs = transactions.filter(tx => tx.status === 0);
+    
+    if (pendingTxs.length === 0) return;
+    
+    const wallet = new ethers.Wallet(privateKey, provider);
+    const contractWithSigner = contract.connect(wallet);
+    
+    const batch = {
+      batchId: `batch-${Date.now()}`,
+      submitter: wallet.address,
+      transactions: pendingTxs,
+      timestamp: Math.floor(Date.now() / 1000),
+      flowUsed: ethers.parseEther("0.1")
+    };
+    
+    const tx = await contractWithSigner.syncOfflineTransactions(batch);
+    await tx.wait();
+    
+    // Update local storage
+    const updatedTxs = transactions.map(tx => 
+      pendingTxs.find(pending => pending.id === tx.id) 
+        ? { ...tx, status: 1 } // Completed
+        : tx
+    );
+    await AsyncStorage.setItem('offlineTransactions', JSON.stringify(updatedTxs));
+    
+  } catch (error) {
+    console.error('Error syncing transactions:', error);
+  }
+};
+```
+
+#### Query Functions
+
+```javascript
 // Get user balance
 const getUserBalance = async (userAddress) => {
-  const balance = await fcl.query({
-    cadence: `
-      import LINProtocolComplete from 0x5495134c932c7e8a
-      
-      access(all) fun main(userAddress: Address): UFix64 {
-        return LINProtocolComplete.getBalance(user: userAddress)
-      }
-    `,
-    args: (arg, t) => [arg(userAddress, t.Address)]
-  })
-  
-  return balance
-}
+  return await contract.getBalance(userAddress);
+};
 
-// Submit offline transaction batch
-const submitBatch = async (batchId, transactions) => {
-  const txId = await fcl.mutate({
-    cadence: `
-      import LINProtocolComplete from 0x5495134c932c7e8a
-      
-      transaction(batchId: String, transactions: [LINProtocolComplete.OfflineTransaction]) {
-        prepare(signer: AuthAccount) {
-          let batch = LINProtocolComplete.TransactionBatch(
-            batchId: batchId,
-            submitter: signer.address,
-            transactions: transactions
-          )
-          
-          let success = LINProtocolComplete.syncOfflineTransactions(batch: batch)
-          
-          if !success {
-            panic("Batch processing failed")
-          }
-        }
-      }
-    `,
-    args: (arg, t) => [
-      arg(batchId, t.String),
-      arg(transactions, t.Array(t.Struct("LINProtocolComplete.OfflineTransaction")))
-    ],
-    proposer: fcl.authz,
-    payer: fcl.authz,
-    authorizations: [fcl.authz],
-    limit: 1000
-  })
-  
-  return txId
-}
+// Get user deposit balance
+const getDepositBalance = async (userAddress) => {
+  return await contract.getDepositBalance(userAddress);
+};
+
+// Get user nonce
+const getUserNonce = async (userAddress) => {
+  return await contract.getUserNonce(userAddress);
+};
+
+// Check if user is active
+const isUserActive = async (userAddress) => {
+  return await contract.isUserActive(userAddress);
+};
+
+// Get complete user account info
+const getUserAccount = async (userAddress) => {
+  return await contract.getUserAccount(userAddress);
+};
 ```
 
-## 🚀 Deployment Status
+### 🔒 Security Features
 
-- ✅ **Smart Contract Architecture**: Complete
-- ✅ **Core Data Structures**: Implemented
-- ✅ **User Account Management**: Deployed
-- ✅ **Offline Transaction Processing**: Deployed
-- ✅ **Security & Validation**: Deployed
-- ✅ **Fee Management**: Deployed
-- ✅ **Flow Testnet Deployment**: Live at `0x5495134c932c7e8a`
-- ✅ **Contract Verification**: Passed all tests
+- **ECDSA Signature Verification**: All transactions must be cryptographically signed
+- **Replay Attack Prevention**: Each transaction ID can only be processed once
+- **Nonce-based Ordering**: Prevents transaction reordering attacks
+- **Time-based Expiry**: Transactions expire after 24 hours
+- **Secure Key Storage**: Use React Native Keychain for private key storage
+- **Local Data Encryption**: AsyncStorage data should be encrypted
+- **Reentrancy Protection**: All state-changing functions are protected
 
-## Contributing
+## 📱 React Native Best Practices
 
-See `SmartContract.md` for detailed technical requirements and implementation guidelines.
+### Secure Key Management
+```javascript
+import * as Keychain from 'react-native-keychain';
 
-## License
+// Store private key securely
+export const storePrivateKey = async (privateKey) => {
+  await Keychain.setInternetCredentials(
+    'OffGridPay',
+    'wallet',
+    privateKey
+  );
+};
 
-MIT License - see LICENSE file for details.
+// Retrieve private key
+export const getPrivateKey = async () => {
+  const credentials = await Keychain.getInternetCredentials('OffGridPay');
+  return credentials ? credentials.password : null;
+};
+```
+
+### Network Status Handling
+```javascript
+import NetInfo from '@react-native-netinfo';
+
+// Check connectivity and sync when online
+export const handleConnectivityChange = (isConnected) => {
+  if (isConnected) {
+    syncOfflineTransactions();
+  }
+};
+
+// Subscribe to network changes
+NetInfo.addEventListener(state => {
+  handleConnectivityChange(state.isConnected);
+});
+```
+
+## 🧪 Testing Your Integration
+
+Test your React Native integration:
+1. **Offline Mode**: Disable network and create transactions
+2. **Sync Testing**: Re-enable network and verify sync works
+3. **Security Testing**: Test with invalid signatures
+4. **Edge Cases**: Test with insufficient balance, expired transactions
+
+```bash
+# Run smart contract tests
+npm test
+
+# Deploy to FlowEVM testnet
+npm run deploy:testnet
+```
+
+## 🚀 React Native App Setup
+
+### 1. Install Dependencies
+```bash
+npm install ethers @react-native-async-storage/async-storage react-native-keychain @react-native-netinfo/netinfo
+```
+
+### 2. Configure Metro (metro.config.js)
+```javascript
+const { getDefaultConfig } = require('metro-config');
+
+module.exports = (async () => {
+  const {
+    resolver: { sourceExts, assetExts },
+  } = await getDefaultConfig();
+  return {
+    resolver: {
+      assetExts: assetExts.filter(ext => ext !== 'svg'),
+      sourceExts: [...sourceExts, 'svg'],
+    },
+  };
+})();
+```
+
+### 3. Add Contract Address
+After deploying your contract, update your React Native app with the contract address:
+
+```javascript
+// config/contract.js
+export const CONTRACT_CONFIG = {
+  address: 'YOUR_DEPLOYED_CONTRACT_ADDRESS',
+  network: 'flowTestnet', // or 'flowMainnet'
+  rpcUrl: 'https://testnet.evm.nodes.onflow.org'
+};
+```
+
+## 📞 Support & Resources
+
+### React Native Integration Help
+- **Ethers.js Documentation**: [https://docs.ethers.org/](https://docs.ethers.org/)
+- **React Native AsyncStorage**: [https://react-native-async-storage.github.io/](https://react-native-async-storage.github.io/)
+- **React Native Keychain**: [https://github.com/oblador/react-native-keychain](https://github.com/oblador/react-native-keychain)
+
+### FlowEVM Resources
+- **FlowEVM Documentation**: [https://developers.flow.com/evm/about](https://developers.flow.com/evm/about)
+- **FlowEVM Testnet Faucet**: [https://testnet-faucet.onflow.org/fund-account](https://testnet-faucet.onflow.org/fund-account)
+- **FlowScan Explorer**: [https://evm-testnet.flowscan.org](https://evm-testnet.flowscan.org)
+
+### Common Issues
+1. **Metro bundler issues**: Clear cache with `npx react-native start --reset-cache`
+2. **iOS build issues**: Run `cd ios && pod install`
+3. **Android build issues**: Clean with `cd android && ./gradlew clean`
+
+## 📄 License
+
+MIT License - Perfect for commercial React Native applications.
