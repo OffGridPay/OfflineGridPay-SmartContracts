@@ -1,0 +1,37 @@
+{
+  "name": "lin-protocol-evm",
+  "version": "1.0.0",
+  "description": "LIN Protocol implementation for FlowEVM - Offline cryptocurrency transactions",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:testnet": "hardhat run scripts/deploy.js --network flowTestnet",
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network flowMainnet",
+    "verify": "hardhat verify --network flowTestnet",
+    "node": "hardhat node",
+    "test:contract": "hardhat run scripts/test-contract.js --network flowTestnet",
+    "test:interactive": "hardhat run scripts/interactive-test.js --network flowTestnet",
+    "test:batch": "hardhat run scripts/test-batch-transactions.js --network flowTestnet",
+    "test:performance": "hardhat run scripts/performance-test.js --network flowTestnet",
+    "test:all": "npm run test && npm run test:contract && npm run test:batch && npm run test:performance"
+  },
+  "keywords": [
+    "blockchain",
+    "cryptocurrency",
+    "offline-transactions",
+    "flowevm",
+    "solidity"
+  ],
+  "author": "LIN Protocol Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "4.9.3",
+    "dotenv": "^16.3.1"
+  }
+}
