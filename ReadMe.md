@@ -1,291 +1,280 @@
-# LIN Protocol - Smart Contracts
+# LIN Protocol - FlowEVM Implementation
 
-**LIN (Ledger Integrated Notes) Protocol v2.0**  
-**Platform:** Flow Blockchain  
-**Framework:** Cadence Smart Contracts  
-**Status:** ✅ **DEPLOYED ON FLOW TESTNET**
+**LIN (Ledger Integrated Notes) Protocol v2.0 - FlowEVM Edition**  
+**Platform:** FlowEVM (Flow's EVM-compatible blockchain)  
+**Framework:** Solidity Smart Contracts  
+**Status:** 🚧 **READY FOR DEPLOYMENT**
 
-## 🚀 Deployment Information
+## 🔄 Migration from Flow to FlowEVM
 
-**Contract Address:** `0x5495134c932c7e8a`  
-**Network:** Flow Testnet  
-**Deployment Date:** January 27, 2025  
-**Status:** Active and Verified ✅
+This is the FlowEVM (Solidity) version of the original Flow blockchain LIN Protocol. Key changes made during migration:
 
-## Overview
+### Technical Changes
+- **Language**: Cadence → Solidity 0.8.19
+- **Token Standard**: FlowToken → Native ETH/FLOW
+- **Resource Model**: Flow Resources → Solidity Structs + Access Control
+- **Cryptography**: Flow Crypto → OpenZeppelin ECDSA
+- **Access Control**: Cadence access modifiers → OpenZeppelin Ownable + ReentrancyGuard
 
-LIN Protocol enables offline cryptocurrency transactions through Bluetooth peer-to-peer communication, with automatic blockchain synchronization when users come online. The system maintains transaction integrity through cryptographic signatures and manages gas costs via FLOW token deposits.
+### Feature Compatibility
+✅ **Offline Transactions**: Fully preserved  
+✅ **Batch Synchronization**: Fully preserved  
+✅ **FLOW Deposit Management**: Adapted to use native ETH/FLOW  
+✅ **Cryptographic Security**: Migrated to ECDSA signature validation  
+✅ **Replay Protection**: Fully preserved  
+✅ **Nonce-based Security**: Fully preserved  
 
-## Project Structure
+## 🚀 Quick Start
 
-```
-├── contracts/                 # Cadence smart contracts
-│   ├── LINProtocol.cdc       # Main protocol contract
-│   ├── OfflineTransactionValidator.cdc  # Transaction validation
-│   └── FlowDepositManager.cdc # FLOW deposit management
-├── scripts/                   # Read-only blockchain queries
-├── transactions/              # Blockchain state-changing operations
-├── tests/                     # Contract unit tests
-├── flow.json                  # Flow project configuration
-└── SmartContract.md          # Detailed technical specifications
-```
+### Prerequisites
+- Node.js v16 or higher
+- npm or yarn
+- FlowEVM wallet with FLOW tokens
 
-## Core Features
+### Installation
 
-- **Offline Transactions**: Create and transfer transactions via Bluetooth
-- **Batch Synchronization**: Efficient blockchain sync when online
-- **FLOW Deposit Management**: Pre-funded gas for seamless processing
-- **Cryptographic Security**: Signature-based transaction validation
-- **Replay Protection**: Nonce-based security mechanisms
+```bash
+# Install dependencies
+npm install
 
-## 🔧 Backend Integration Guide
+# Copy environment file
+cp .env.example .env
 
-### Contract Information
-- **Contract Name:** `LINProtocolComplete`
-- **Contract Address:** `0x5495134c932c7e8a`
-- **Network:** Flow Testnet
-- **FlowToken Address:** `0x7e60df042a9c0868`
-
-### Required Dependencies
-```javascript
-// Flow SDK for JavaScript/Node.js
-npm install @onflow/fcl @onflow/types
-
-// Flow configuration
-import * as fcl from "@onflow/fcl"
-
-fcl.config({
-  "accessNode.api": "https://rest-testnet.onflow.org", // Flow Testnet
-  "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn"
-})
+# Edit .env with your private key
+nano .env
 ```
 
-### 📋 Contract Functions Reference
+### Configuration
 
-#### 1. User Account Management
+Edit `.env` file:
+```bash
+# Your wallet private key (without 0x prefix)
+PRIVATE_KEY=your_private_key_here
 
-**Initialize User Account** (Transaction)
-- Function: `initializeAccount(user: Address, flowDeposit: @FlowToken.Vault)`
-- Parameters:
-  - `user`: User's wallet address
-  - `flowDeposit`: FLOW tokens for fees (minimum 10.0 FLOW)
-- Returns: `@UserAccount` resource
+# Optional: Enable gas reporting
+REPORT_GAS=true
+```
 
-**Register Public Key** (Transaction)
-- Function: `registerPublicKey(user: Address, publicKey: String)`
-- Parameters:
-  - `user`: User's wallet address
-  - `publicKey`: User's public key for signature verification (64-256 chars)
+### Compilation
 
-**Deposit FLOW Tokens** (Transaction)
-- Function: `depositFlow(user: Address, vault: @FlowToken.Vault)`
-- Parameters:
-  - `user`: User's wallet address
-  - `vault`: FLOW tokens to deposit
+```bash
+# Compile contracts
+npm run compile
+```
 
-**Withdraw FLOW Tokens** (Transaction)
-- Function: `withdrawFlow(user: Address, amount: UFix64)`
-- Parameters:
-  - `user`: User's wallet address
-  - `amount`: Amount to withdraw
-- Returns: `@FlowToken.Vault`
+### Testing
 
-#### 2. Offline Transaction Processing
+```bash
+# Run tests
+npm test
+```
 
-**Sync Offline Transaction Batch** (Transaction)
-- Function: `syncOfflineTransactions(batch: TransactionBatch)`
-- Parameters:
-  - `batch`: TransactionBatch struct containing:
-    - `batchId`: Unique batch identifier
-    - `submitter`: Address submitting the batch
-    - `transactions`: Array of OfflineTransaction structs
-- Returns: `Bool` (success/failure)
+### Deployment
 
-**OfflineTransaction Structure**
-```javascript
-{
-  id: "unique-tx-id",           // String
-  from: "0x...",                // Address
-  to: "0x...",                  // Address  
-  amount: "10.50000000",        // UFix64 (8 decimals)
-  timestamp: 1640995200,        // UFix64 (Unix timestamp)
-  nonce: 1,                     // UInt64
-  signature: "crypto-sig...",   // String (64-256 chars)
-  status: 0                     // TransactionStatus enum
+```bash
+# Deploy to FlowEVM Testnet
+npm run deploy:testnet
+
+# Deploy to FlowEVM Mainnet
+npm run deploy:mainnet
+```
+
+## 🌐 FlowEVM Network Information
+
+### Testnet
+- **RPC URL**: `https://testnet.evm.nodes.onflow.org`
+- **Chain ID**: `545`
+- **Explorer**: https://evm-testnet.flowscan.org
+- **Faucet**: https://testnet-faucet.onflow.org/fund-account
+
+### Mainnet
+- **RPC URL**: `https://mainnet.evm.nodes.onflow.org`
+- **Chain ID**: `747`
+- **Explorer**: https://evm.flowscan.org
+
+## 📋 Contract Interface
+
+### Core Functions
+
+#### Account Management
+```solidity
+// Initialize account with FLOW deposit
+function initializeAccount() external payable
+
+// Add more FLOW deposit
+function addFlowDeposit() external payable
+
+// Withdraw FLOW deposit
+function withdrawFlowDeposit(uint256 amount) external
+
+// Deactivate/reactivate account
+function deactivateAccount() external
+function reactivateAccount() external
+```
+
+#### Transaction Processing
+```solidity
+// Process batch of offline transactions
+function syncOfflineTransactions(TransactionBatch memory batch) external returns (bool)
+
+// Validate transaction signature
+function validateSignature(OfflineTransaction memory tx) public view returns (bool)
+
+// Check for replay attacks
+function preventReplay(string memory txId) public view returns (bool)
+```
+
+#### View Functions
+```solidity
+function getBalance(address user) external view returns (uint256)
+function getDepositBalance(address user) external view returns (uint256)
+function getUserNonce(address user) external view returns (uint256)
+function isUserActive(address user) external view returns (bool)
+function getUserAccount(address user) external view returns (UserAccount memory)
+```
+
+### Data Structures
+
+```solidity
+struct OfflineTransaction {
+    string id;
+    address from;
+    address to;
+    uint256 amount;
+    uint256 timestamp;
+    uint256 nonce;
+    bytes signature;
+    TransactionStatus status;
+}
+
+struct TransactionBatch {
+    string batchId;
+    address submitter;
+    OfflineTransaction[] transactions;
+    uint256 timestamp;
+    uint256 flowUsed;
+}
+
+struct UserAccount {
+    uint256 balance;
+    uint256 flowDeposit;
+    uint256 nonce;
+    uint256 lastSyncTime;
+    bool isActive;
+    address publicKeyAddress;
 }
 ```
 
-#### 3. Query Functions (Scripts)
+## 🔧 Integration Guide
 
-**Get User Balance**
-- Function: `getBalance(user: Address)`
-- Parameters: `user` - User's wallet address
-- Returns: `UFix64` - Current balance
-
-**Get User Deposit Balance**
-- Function: `getDepositBalance(user: Address)`
-- Parameters: `user` - User's wallet address
-- Returns: `UFix64` - Available FLOW deposit
-
-**Get User Nonce**
-- Function: `getUserNonce(user: Address)`
-- Parameters: `user` - User's wallet address
-- Returns: `UInt64` - Current transaction nonce
-
-**Check User Status**
-- Function: `isUserActive(user: Address)`
-- Parameters: `user` - User's wallet address
-- Returns: `Bool` - Account active status
-
-**Get Protocol Statistics**
-- Functions:
-  - `getTotalUsers()` → `UInt64`
-  - `getTotalTransactions()` → `UInt64`
-  - `getTotalFlowDeposited()` → `UFix64`
-
-#### 4. Utility Functions
-
-**Calculate Transaction Fee**
-- Function: `calculateTransactionFee(amount: UFix64, isComplexTransaction: Bool)`
-- Returns: `UFix64` - Calculated fee
-
-**Calculate Batch Fee**
-- Function: `calculateBatchFee(transactionCount: Int)`
-- Returns: `UFix64` - Total batch processing fee
-
-**Validate Transaction Amount**
-- Function: `isValidTransactionAmount(amount: UFix64)`
-- Returns: `Bool` - Amount validity
-
-**Generate Transaction ID**
-- Function: `generateTransactionId(from: Address, to: Address, nonce: UInt64, timestamp: UFix64)`
-- Returns: `String` - Unique transaction ID
-
-## 📋 Technical Specifications
-
-- **Minimum FLOW Deposit**: 10.0 FLOW per user
-- **Max Batch Size**: 100 transactions  
-- **Transaction Validity**: 24 hours
-- **Base Transaction Fee**: 0.001 FLOW
-- **Max Transaction Amount**: 1,000,000 FLOW
-- **Signature Length**: 64-256 characters
-- **Max Nonce Skip**: 10 transactions
-- **Precision**: UFix64 (8 decimal places)
-
-## 🔧 JavaScript Integration Example
+### Frontend Integration
 
 ```javascript
-import * as fcl from "@onflow/fcl"
-import * as t from "@onflow/types"
+// Contract ABI and address (after deployment)
+const contractAddress = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
+const contractABI = [...]; // From artifacts/contracts/LINProtocolEVM.sol/LINProtocolEVM.json
 
-// Configure Flow
-fcl.config({
-  "accessNode.api": "https://rest-testnet.onflow.org",
-  "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn"
-})
+// Initialize contract
+const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
 // Initialize user account
-const initializeAccount = async (depositAmount) => {
-  const txId = await fcl.mutate({
-    cadence: `
-      import LINProtocolComplete from 0x5495134c932c7e8a
-      import FlowToken from 0x7e60df042a9c0868
-      
-      transaction(depositAmount: UFix64) {
-        prepare(signer: AuthAccount) {
-          let vaultRef = signer.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)!
-          let depositVault <- vaultRef.withdraw(amount: depositAmount)
-          
-          let userAccount <- LINProtocolComplete.initializeAccount(
-            user: signer.address,
-            flowDeposit: <-depositVault
-          )
-          
-          signer.save(<-userAccount, to: /storage/LINUserAccount)
-          signer.link<&LINProtocolComplete.UserAccount>(
-            /public/LINUserAccount,
-            target: /storage/LINUserAccount
-          )
-        }
-      }
-    `,
-    args: (arg, t) => [arg(depositAmount, t.UFix64)],
-    proposer: fcl.authz,
-    payer: fcl.authz,
-    authorizations: [fcl.authz],
-    limit: 1000
-  })
-  
-  return txId
-}
+await contract.initializeAccount({ value: ethers.parseEther("10") });
 
 // Get user balance
-const getUserBalance = async (userAddress) => {
-  const balance = await fcl.query({
-    cadence: `
-      import LINProtocolComplete from 0x5495134c932c7e8a
-      
-      access(all) fun main(userAddress: Address): UFix64 {
-        return LINProtocolComplete.getBalance(user: userAddress)
-      }
-    `,
-    args: (arg, t) => [arg(userAddress, t.Address)]
-  })
-  
-  return balance
-}
+const balance = await contract.getBalance(userAddress);
 
-// Submit offline transaction batch
-const submitBatch = async (batchId, transactions) => {
-  const txId = await fcl.mutate({
-    cadence: `
-      import LINProtocolComplete from 0x5495134c932c7e8a
-      
-      transaction(batchId: String, transactions: [LINProtocolComplete.OfflineTransaction]) {
-        prepare(signer: AuthAccount) {
-          let batch = LINProtocolComplete.TransactionBatch(
-            batchId: batchId,
-            submitter: signer.address,
-            transactions: transactions
-          )
-          
-          let success = LINProtocolComplete.syncOfflineTransactions(batch: batch)
-          
-          if !success {
-            panic("Batch processing failed")
-          }
-        }
-      }
-    `,
-    args: (arg, t) => [
-      arg(batchId, t.String),
-      arg(transactions, t.Array(t.Struct("LINProtocolComplete.OfflineTransaction")))
-    ],
-    proposer: fcl.authz,
-    payer: fcl.authz,
-    authorizations: [fcl.authz],
-    limit: 1000
-  })
-  
-  return txId
-}
+// Process offline transactions
+const batch = {
+    batchId: "batch-123",
+    submitter: userAddress,
+    transactions: [...],
+    timestamp: Date.now(),
+    flowUsed: ethers.parseEther("0.1")
+};
+await contract.syncOfflineTransactions(batch);
 ```
 
-## 🚀 Deployment Status
+### Mobile App Integration
 
-- ✅ **Smart Contract Architecture**: Complete
-- ✅ **Core Data Structures**: Implemented
-- ✅ **User Account Management**: Deployed
-- ✅ **Offline Transaction Processing**: Deployed
-- ✅ **Security & Validation**: Deployed
-- ✅ **Fee Management**: Deployed
-- ✅ **Flow Testnet Deployment**: Live at `0x5495134c932c7e8a`
-- ✅ **Contract Verification**: Passed all tests
+```javascript
+// Generate transaction ID
+const txId = await contract.generateTransactionId(
+    fromAddress,
+    toAddress,
+    nonce,
+    timestamp
+);
 
-## Contributing
+// Create offline transaction
+const offlineTransaction = {
+    id: txId,
+    from: fromAddress,
+    to: toAddress,
+    amount: ethers.parseEther("10"),
+    timestamp: Math.floor(Date.now() / 1000),
+    nonce: userNonce + 1,
+    signature: await signTransaction(transactionData),
+    status: 0 // Pending
+};
+```
 
-See `SmartContract.md` for detailed technical requirements and implementation guidelines.
+## 🔒 Security Features
 
-## License
+- **ECDSA Signature Verification**: All transactions must be cryptographically signed
+- **Replay Attack Prevention**: Each transaction ID can only be processed once
+- **Nonce-based Ordering**: Prevents transaction reordering attacks
+- **Time-based Expiry**: Transactions expire after 24 hours
+- **Access Control**: Owner-only functions for emergency situations
+- **Reentrancy Protection**: All state-changing functions are protected
+
+## 📊 Gas Optimization
+
+The contract is optimized for gas efficiency:
+- Batch processing reduces per-transaction costs
+- Efficient storage patterns
+- Minimal external calls
+- Optimized data structures
+
+## 🧪 Testing
+
+Comprehensive test suite covering:
+- Account initialization and management
+- Deposit/withdrawal operations
+- Transaction validation and processing
+- Security features (replay protection, signature validation)
+- Edge cases and error conditions
+
+```bash
+# Run all tests
+npm test
+
+# Run with gas reporting
+REPORT_GAS=true npm test
+```
+
+## 🚀 Deployment Verification
+
+After deployment, verify your contract:
+
+```bash
+# Verify on FlowScan
+npx hardhat verify --network flowTestnet YOUR_CONTRACT_ADDRESS
+```
+
+## 📞 Support
+
+For technical support or questions:
+- Check the test files for usage examples
+- Review the contract comments for detailed function documentation
+- Ensure your wallet has sufficient FLOW for gas fees
+
+## 🔗 Useful Links
+
+- [FlowEVM Documentation](https://developers.flow.com/evm/about)
+- [FlowEVM Testnet Faucet](https://testnet-faucet.onflow.org/fund-account)
+- [FlowScan Explorer](https://evm-testnet.flowscan.org)
+- [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/)
+
+## 📄 License
 
 MIT License - see LICENSE file for details.
