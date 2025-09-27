@@ -1,0 +1,32 @@
+{
+  "contracts": {
+    "LINProtocolComplete": "./contracts/LINProtocolComplete.cdc"
+  },
+  "networks": {
+    "emulator": "127.0.0.1:3569",
+    "testnet": "access.devnet.nodes.onflow.org:9000",
+    "mainnet": "access.mainnet.nodes.onflow.org:9000"
+  },
+  "accounts": {
+    "emulator-account": {
+      "address": "f8d6e0586b0a20c7",
+      "key": "5112883de06b9576af62b9aafa7ead685fb7fb46c495039b1a83649d61bff97c"
+    },
+    "testnet-account": {
+      "address": "0x5495134c932c7e8a",
+      "key": "0bf8f7b58123564500240d014115726b80551ce4f3f37c48eab370a1f87cdc8b"
+    }
+  },
+  "deployments": {
+    "emulator": {
+      "emulator-account": [
+        "LINProtocolComplete"
+      ]
+    },
+    "testnet": {
+      "testnet-account": [
+        "LINProtocolComplete"
+      ]
+    }
+  }
+}
