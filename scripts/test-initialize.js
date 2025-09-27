@@ -9,7 +9,7 @@ async function main() {
   console.log(`👤 Using account: ${deployer.address}`);
   
   // Connect to contract
-  const contract = await ethers.getContractAt("LINProtocolEVM", CONTRACT_ADDRESS);
+  const contract = await ethers.getContractAt("offgridpay", CONTRACT_ADDRESS);
   
   // Check minimum deposit requirement
   const minDeposit = await contract.MINIMUM_FLOW_DEPOSIT();

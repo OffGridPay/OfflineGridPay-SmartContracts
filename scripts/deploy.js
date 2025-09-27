@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  console.log("🚀 Starting LIN Protocol EVM deployment...");
+  console.log("🚀 Starting offgridpay deployment...");
 
   // Get the deployer account
   const [deployer] = await ethers.getSigners();
@@ -15,16 +15,16 @@ async function main() {
     console.warn("⚠️  Warning: Low balance. Make sure you have enough FLOW for deployment.");
   }
 
-  // Deploy LINProtocolEVM contract
-  console.log("\n📦 Deploying LINProtocolEVM contract...");
+  // Deploy offgridpay contract
+  console.log("\n📦 Deploying offgridpay contract...");
   
-  const LINProtocolEVM = await ethers.getContractFactory("LINProtocolEVM");
-  const linProtocol = await LINProtocolEVM.deploy();
+  const offgridpay = await ethers.getContractFactory("offgridpay");
+  const linProtocol = await offgridpay.deploy();
   
   await linProtocol.waitForDeployment();
   const contractAddress = await linProtocol.getAddress();
 
-  console.log("✅ LINProtocolEVM deployed to:", contractAddress);
+  console.log("✅ offgridpay deployed to:", contractAddress);
 
   // Verify deployment by calling a view function
   try {

@@ -2,7 +2,7 @@
 
 ## 🚀 Ready to Deploy!
 
-Your LIN Protocol contract has been successfully migrated to FlowEVM and all tests are passing (20/20). Follow these steps to deploy:
+Your offgridpay contract has been successfully migrated to FlowEVM and all tests are passing (20/20). Follow these steps to deploy:
 
 ## Step 1: Set up Environment
 
@@ -36,7 +36,7 @@ npm run deploy:testnet
 ```
 
 This will:
-- Deploy your LINProtocolEVM contract
+- Deploy your offgridpay contract
 - Show you the contract address
 - Verify the deployment
 - Provide links to view on FlowScan

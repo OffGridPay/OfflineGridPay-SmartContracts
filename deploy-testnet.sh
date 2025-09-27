@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Deploy LIN Protocol Simple to Flow Testnet
+# Deploy offgridpay to Flow Testnet
 # This script creates a testnet account and deploys the contract
 
-echo "🚀 Starting Flow Testnet Deployment for LIN Protocol Simple"
+echo "🚀 Starting Flow Testnet Deployment for offgridpay"
 
 # Step 1: Generate a new key pair for testnet
 echo "📝 Generating new testnet key pair..."

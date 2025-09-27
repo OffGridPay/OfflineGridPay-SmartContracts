@@ -5,6 +5,12 @@
 **Framework:** Solidity Smart Contracts  
 **Status:** 🚀 **READY FOR INTEGRATION**
 
+**Contract address:**
+0xdA3Db417CEF41d8289df2db62d4752801D1dcb42
+
+**With RPC url:**
+https://evm-testnet.flowscan.io/address/0xdA3Db417CEF41d8289df2db62d4752801D1dcb42?tab=read_write_contract
+
 ## 📱 React Native Integration Ready
 
 OffGridPay enables secure offline payments in mobile applications with seamless blockchain synchronization. Perfect for React Native apps that need to work in areas with poor connectivity.

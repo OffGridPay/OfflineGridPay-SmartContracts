@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("LINProtocolEVM", function () {
+describe("offgridpay", function () {
   let linProtocol;
   let owner;
   let user1;
@@ -14,8 +14,8 @@ describe("LINProtocolEVM", function () {
   beforeEach(async function () {
     [owner, user1, user2, user3] = await ethers.getSigners();
 
-    const LINProtocolEVM = await ethers.getContractFactory("LINProtocolEVM");
-    linProtocol = await LINProtocolEVM.deploy();
+    const offgridpay = await ethers.getContractFactory("offgridpay");
+    linProtocol = await offgridpay.deploy();
     await linProtocol.waitForDeployment();
   });
 

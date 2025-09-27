@@ -1,4 +1,4 @@
-# 🔄 LIN Protocol Function Testing Sequence
+# 🔄 offgridpay Function Testing Sequence
 
 **Contract Address**: `0x5047983EC64EF766B6a524FA2b6E1C3f766B84D6`  
 **Network**: FlowEVM Testnet  
@@ -277,7 +277,7 @@ npm run test:batch
 npx hardhat console --network flowTestnet
 
 # Then run commands interactively:
-const contract = await ethers.getContractAt("LINProtocolEVM", "0x5047983EC64EF766B6a524FA2b6E1C3f766B84D6");
+const contract = await ethers.getContractAt("offgridpay", "0x5047983EC64EF766B6a524FA2b6E1C3f766B84D6");
 await contract.totalUsers();
 ```
 
@@ -306,4 +306,4 @@ await contract.totalUsers();
 10. isTransactionProcessed() → Verify replay protection
 ```
 
-This sequence will test every aspect of your LIN Protocol contract! 🎉
+This sequence will test every aspect of your offgridpay contract! 🎉

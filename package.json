@@ -1,7 +1,7 @@
 {
-  "name": "lin-protocol-evm",
+  "name": "offgridpay",
   "version": "1.0.0",
-  "description": "LIN Protocol implementation for FlowEVM - Offline cryptocurrency transactions",
+  "description": "offgridpay implementation for FlowEVM - Offline cryptocurrency transactions",
   "main": "index.js",
   "scripts": {
     "compile": "hardhat compile",
@@ -23,7 +23,7 @@
     "flowevm",
     "solidity"
   ],
-  "author": "LIN Protocol Team",
+  "author": "Rohit Purkait",
   "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",

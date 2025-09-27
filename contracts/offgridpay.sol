@@ -6,12 +6,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
- * @title LINProtocolEVM
- * @dev Complete LIN Protocol implementation for FlowEVM
+ * @title offgridpay
+ * @dev Complete offgridpay implementation for FlowEVM
  * Enables offline cryptocurrency transactions through Bluetooth peer-to-peer communication
  * with automatic blockchain synchronization when users come online
  */
-contract LINProtocolEVM is ReentrancyGuard, Ownable {
+contract offgridpay is ReentrancyGuard, Ownable {
     using ECDSA for bytes32;
 
     // Protocol constants

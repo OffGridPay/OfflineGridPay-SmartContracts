@@ -16,7 +16,7 @@ async function main() {
   console.log(`   User3: ${user3.address}`);
 
   // Connect to deployed contract
-  const LINProtocol = await ethers.getContractFactory("LINProtocolEVM");
+  const LINProtocol = await ethers.getContractFactory("offgridpay");
   const contract = LINProtocol.attach(CONTRACT_ADDRESS);
   
   console.log(`\n🔗 Connected to contract at: ${CONTRACT_ADDRESS}`);

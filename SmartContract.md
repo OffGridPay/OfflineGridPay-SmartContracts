@@ -1,14 +1,14 @@
-# LIN Protocol - Product Requirements Document (PRD)
+# offgridpay - Product Requirements Document (PRD)
 
 ## 1. Executive Summary
 
-**Product Name:** LIN (Ledger Integrated Notes) Protocol  
+**Product Name:** offgridpay  
 **Version:** 2.0  
 **Platform:** Flow Blockchain  
 **Development Framework:** Flow CLI & Cadence  
 **Native Token:** FLOW  
 
-LIN Protocol enables offline cryptocurrency transactions through Bluetooth peer-to-peer communication, with automatic blockchain synchronization when users come online. The system maintains transaction integrity through cryptographic signatures and manages gas costs via FLOW token deposits on the Flow blockchain.
+offgridpay enables offline cryptocurrency transactions through Bluetooth peer-to-peer communication, with automatic blockchain synchronization when users come online. The system maintains transaction integrity through cryptographic signatures and manages gas costs via FLOW token deposits on the Flow blockchain.
 
 ## 2. Product Overview
 

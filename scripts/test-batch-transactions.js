@@ -11,7 +11,7 @@ async function main() {
   const [deployer, user1, user2, user3] = await ethers.getSigners();
   
   // Connect to contract
-  const LINProtocol = await ethers.getContractFactory("LINProtocolEVM");
+  const LINProtocol = await ethers.getContractFactory("offgridpay");
   const contract = LINProtocol.attach(CONTRACT_ADDRESS);
   
   console.log(`📍 Contract: ${CONTRACT_ADDRESS}`);

@@ -1,6 +1,6 @@
-# 🧪 LIN Protocol Testing Guide
+# 🧪 offgridpay Testing Guide
 
-Complete testing suite for your deployed LIN Protocol contract on FlowEVM testnet.
+Complete testing suite for your deployed offgridpay contract on FlowEVM testnet.
 
 ## 📍 Contract Information
 
