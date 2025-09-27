@@ -1,28 +1,21 @@
-# LIN Protocol - FlowEVM Implementation
+# OffGridPay Smart Contract
 
-**LIN (Ledger Integrated Notes) Protocol v2.0 - FlowEVM Edition**  
+**Offline Payment System for React Native Applications**  
 **Platform:** FlowEVM (Flow's EVM-compatible blockchain)  
 **Framework:** Solidity Smart Contracts  
-**Status:** 🚧 **READY FOR DEPLOYMENT**
+**Status:** 🚀 **READY FOR INTEGRATION**
 
-## 🔄 Migration from Flow to FlowEVM
+## 📱 React Native Integration Ready
 
-This is the FlowEVM (Solidity) version of the original Flow blockchain LIN Protocol. Key changes made during migration:
+OffGridPay enables secure offline payments in mobile applications with seamless blockchain synchronization. Perfect for React Native apps that need to work in areas with poor connectivity.
 
-### Technical Changes
-- **Language**: Cadence → Solidity 0.8.19
-- **Token Standard**: FlowToken → Native ETH/FLOW
-- **Resource Model**: Flow Resources → Solidity Structs + Access Control
-- **Cryptography**: Flow Crypto → OpenZeppelin ECDSA
-- **Access Control**: Cadence access modifiers → OpenZeppelin Ownable + ReentrancyGuard
-
-### Feature Compatibility
-✅ **Offline Transactions**: Fully preserved  
-✅ **Batch Synchronization**: Fully preserved  
-✅ **FLOW Deposit Management**: Adapted to use native ETH/FLOW  
-✅ **Cryptographic Security**: Migrated to ECDSA signature validation  
-✅ **Replay Protection**: Fully preserved  
-✅ **Nonce-based Security**: Fully preserved  
+### Key Features
+✅ **Offline Transaction Processing**: Create and store transactions without internet  
+✅ **Batch Synchronization**: Sync multiple transactions when connection is restored  
+✅ **Secure Wallet Integration**: Built-in deposit and withdrawal management  
+✅ **Cryptographic Security**: ECDSA signature validation for all transactions  
+✅ **Anti-Fraud Protection**: Replay attack prevention and nonce-based security  
+✅ **Mobile Optimized**: Designed specifically for React Native applications  
 
 ## 🚀 Quick Start
 
@@ -165,56 +158,134 @@ struct UserAccount {
 }
 ```
 
-## 🔧 Integration Guide
+## 🔧 React Native Integration Guide
 
-### Frontend Integration
+### Installation
 
-```javascript
-// Contract ABI and address (after deployment)
-const contractAddress = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
-const contractABI = [...]; // From artifacts/contracts/LINProtocolEVM.sol/LINProtocolEVM.json
+Add these dependencies to your React Native project:
 
-// Initialize contract
-const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-// Initialize user account
-await contract.initializeAccount({ value: ethers.parseEther("10") });
-
-// Get user balance
-const balance = await contract.getBalance(userAddress);
-
-// Process offline transactions
-const batch = {
-    batchId: "batch-123",
-    submitter: userAddress,
-    transactions: [...],
-    timestamp: Date.now(),
-    flowUsed: ethers.parseEther("0.1")
-};
-await contract.syncOfflineTransactions(batch);
+```bash
+npm install ethers @react-native-async-storage/async-storage react-native-keychain
+# For iOS
+cd ios && pod install
 ```
 
-### Mobile App Integration
+### Basic Setup
 
 ```javascript
-// Generate transaction ID
-const txId = await contract.generateTransactionId(
-    fromAddress,
-    toAddress,
-    nonce,
-    timestamp
-);
+import { ethers } from 'ethers';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Keychain from 'react-native-keychain';
+
+// Contract configuration
+const CONTRACT_ADDRESS = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
+const CONTRACT_ABI = [...]; // From artifacts/contracts/OffGridPayEVM.sol/OffGridPayEVM.json
+
+// Initialize provider and contract
+const provider = new ethers.JsonRpcProvider('https://testnet.evm.nodes.onflow.org');
+const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+```
+
+### Wallet Integration
+
+```javascript
+// Initialize user wallet
+export const initializeWallet = async (privateKey) => {
+  const wallet = new ethers.Wallet(privateKey, provider);
+  const contractWithSigner = contract.connect(wallet);
+  
+  // Initialize account with deposit
+  const tx = await contractWithSigner.initializeAccount({ 
+    value: ethers.parseEther("10") 
+  });
+  await tx.wait();
+  
+  return wallet.address;
+};
+
+// Get user balance
+export const getUserBalance = async (userAddress) => {
+  return await contract.getBalance(userAddress);
+};
+```
+
+### Offline Transaction Management
+
+```javascript
+// Store offline transaction locally
+export const storeOfflineTransaction = async (transaction) => {
+  try {
+    const existingTxs = await AsyncStorage.getItem('offlineTransactions');
+    const transactions = existingTxs ? JSON.parse(existingTxs) : [];
+    transactions.push(transaction);
+    await AsyncStorage.setItem('offlineTransactions', JSON.stringify(transactions));
+  } catch (error) {
+    console.error('Error storing offline transaction:', error);
+  }
+};
 
 // Create offline transaction
-const offlineTransaction = {
-    id: txId,
+export const createOfflineTransaction = async (fromAddress, toAddress, amount, privateKey) => {
+  const wallet = new ethers.Wallet(privateKey);
+  const nonce = await contract.getUserNonce(fromAddress);
+  
+  const transaction = {
+    id: ethers.keccak256(ethers.toUtf8Bytes(`${fromAddress}-${toAddress}-${nonce}-${Date.now()}`)),
     from: fromAddress,
     to: toAddress,
-    amount: ethers.parseEther("10"),
+    amount: ethers.parseEther(amount.toString()),
     timestamp: Math.floor(Date.now() / 1000),
-    nonce: userNonce + 1,
-    signature: await signTransaction(transactionData),
+    nonce: nonce + 1,
     status: 0 // Pending
+  };
+  
+  // Sign transaction
+  const messageHash = ethers.solidityPackedKeccak256(
+    ['string', 'address', 'address', 'uint256', 'uint256', 'uint256'],
+    [transaction.id, transaction.from, transaction.to, transaction.amount, transaction.timestamp, transaction.nonce]
+  );
+  transaction.signature = await wallet.signMessage(ethers.getBytes(messageHash));
+  
+  await storeOfflineTransaction(transaction);
+  return transaction;
+};
+
+// Sync offline transactions when online
+export const syncOfflineTransactions = async (privateKey) => {
+  try {
+    const storedTxs = await AsyncStorage.getItem('offlineTransactions');
+    if (!storedTxs) return;
+    
+    const transactions = JSON.parse(storedTxs);
+    const pendingTxs = transactions.filter(tx => tx.status === 0);
+    
+    if (pendingTxs.length === 0) return;
+    
+    const wallet = new ethers.Wallet(privateKey, provider);
+    const contractWithSigner = contract.connect(wallet);
+    
+    const batch = {
+      batchId: `batch-${Date.now()}`,
+      submitter: wallet.address,
+      transactions: pendingTxs,
+      timestamp: Math.floor(Date.now() / 1000),
+      flowUsed: ethers.parseEther("0.1")
+    };
+    
+    const tx = await contractWithSigner.syncOfflineTransactions(batch);
+    await tx.wait();
+    
+    // Update local storage
+    const updatedTxs = transactions.map(tx => 
+      pendingTxs.find(pending => pending.id === tx.id) 
+        ? { ...tx, status: 1 } // Completed
+        : tx
+    );
+    await AsyncStorage.setItem('offlineTransactions', JSON.stringify(updatedTxs));
+    
+  } catch (error) {
+    console.error('Error syncing transactions:', error);
+  }
 };
 ```
 
@@ -224,57 +295,118 @@ const offlineTransaction = {
 - **Replay Attack Prevention**: Each transaction ID can only be processed once
 - **Nonce-based Ordering**: Prevents transaction reordering attacks
 - **Time-based Expiry**: Transactions expire after 24 hours
-- **Access Control**: Owner-only functions for emergency situations
+- **Secure Key Storage**: Use React Native Keychain for private key storage
+- **Local Data Encryption**: AsyncStorage data should be encrypted
 - **Reentrancy Protection**: All state-changing functions are protected
 
-## 📊 Gas Optimization
+## 📱 React Native Best Practices
 
-The contract is optimized for gas efficiency:
-- Batch processing reduces per-transaction costs
-- Efficient storage patterns
-- Minimal external calls
-- Optimized data structures
+### Secure Key Management
+```javascript
+import * as Keychain from 'react-native-keychain';
 
-## 🧪 Testing
+// Store private key securely
+export const storePrivateKey = async (privateKey) => {
+  await Keychain.setInternetCredentials(
+    'OffGridPay',
+    'wallet',
+    privateKey
+  );
+};
 
-Comprehensive test suite covering:
-- Account initialization and management
-- Deposit/withdrawal operations
-- Transaction validation and processing
-- Security features (replay protection, signature validation)
-- Edge cases and error conditions
+// Retrieve private key
+export const getPrivateKey = async () => {
+  const credentials = await Keychain.getInternetCredentials('OffGridPay');
+  return credentials ? credentials.password : null;
+};
+```
+
+### Network Status Handling
+```javascript
+import NetInfo from '@react-native-netinfo';
+
+// Check connectivity and sync when online
+export const handleConnectivityChange = (isConnected) => {
+  if (isConnected) {
+    syncOfflineTransactions();
+  }
+};
+
+// Subscribe to network changes
+NetInfo.addEventListener(state => {
+  handleConnectivityChange(state.isConnected);
+});
+```
+
+## 🧪 Testing Your Integration
+
+Test your React Native integration:
+1. **Offline Mode**: Disable network and create transactions
+2. **Sync Testing**: Re-enable network and verify sync works
+3. **Security Testing**: Test with invalid signatures
+4. **Edge Cases**: Test with insufficient balance, expired transactions
 
 ```bash
-# Run all tests
+# Run smart contract tests
 npm test
 
-# Run with gas reporting
-REPORT_GAS=true npm test
+# Deploy to FlowEVM testnet
+npm run deploy:testnet
 ```
 
-## 🚀 Deployment Verification
+## 🚀 React Native App Setup
 
-After deployment, verify your contract:
-
+### 1. Install Dependencies
 ```bash
-# Verify on FlowScan
-npx hardhat verify --network flowTestnet YOUR_CONTRACT_ADDRESS
+npm install ethers @react-native-async-storage/async-storage react-native-keychain @react-native-netinfo/netinfo
 ```
 
-## 📞 Support
+### 2. Configure Metro (metro.config.js)
+```javascript
+const { getDefaultConfig } = require('metro-config');
 
-For technical support or questions:
-- Check the test files for usage examples
-- Review the contract comments for detailed function documentation
-- Ensure your wallet has sufficient FLOW for gas fees
+module.exports = (async () => {
+  const {
+    resolver: { sourceExts, assetExts },
+  } = await getDefaultConfig();
+  return {
+    resolver: {
+      assetExts: assetExts.filter(ext => ext !== 'svg'),
+      sourceExts: [...sourceExts, 'svg'],
+    },
+  };
+})();
+```
 
-## 🔗 Useful Links
+### 3. Add Contract Address
+After deploying your contract, update your React Native app with the contract address:
 
-- [FlowEVM Documentation](https://developers.flow.com/evm/about)
-- [FlowEVM Testnet Faucet](https://testnet-faucet.onflow.org/fund-account)
-- [FlowScan Explorer](https://evm-testnet.flowscan.org)
-- [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/)
+```javascript
+// config/contract.js
+export const CONTRACT_CONFIG = {
+  address: 'YOUR_DEPLOYED_CONTRACT_ADDRESS',
+  network: 'flowTestnet', // or 'flowMainnet'
+  rpcUrl: 'https://testnet.evm.nodes.onflow.org'
+};
+```
+
+## 📞 Support & Resources
+
+### React Native Integration Help
+- **Ethers.js Documentation**: [https://docs.ethers.org/](https://docs.ethers.org/)
+- **React Native AsyncStorage**: [https://react-native-async-storage.github.io/](https://react-native-async-storage.github.io/)
+- **React Native Keychain**: [https://github.com/oblador/react-native-keychain](https://github.com/oblador/react-native-keychain)
+
+### FlowEVM Resources
+- **FlowEVM Documentation**: [https://developers.flow.com/evm/about](https://developers.flow.com/evm/about)
+- **FlowEVM Testnet Faucet**: [https://testnet-faucet.onflow.org/fund-account](https://testnet-faucet.onflow.org/fund-account)
+- **FlowScan Explorer**: [https://evm-testnet.flowscan.org](https://evm-testnet.flowscan.org)
+
+### Common Issues
+1. **Metro bundler issues**: Clear cache with `npx react-native start --reset-cache`
+2. **iOS build issues**: Run `cd ios && pod install`
+3. **Android build issues**: Clean with `cd android && ./gradlew clean`
 
 ## 📄 License
 
-MIT License - see LICENSE file for details.
+MIT License - Perfect for commercial React Native applications.
