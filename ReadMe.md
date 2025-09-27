@@ -5,11 +5,14 @@
 **Framework:** Solidity Smart Contracts  
 **Status:** 🚀 **READY FOR INTEGRATION**
 
-**Contract address:**
-0xdA3Db417CEF41d8289df2db62d4752801D1dcb42
+**Multi-Token Contract Address (FLOW + PYUSD):**
+0x198DD9d62c751937f0DF86c0e451F753858358f3
 
-**With RPC url:**
-https://evm-testnet.flowscan.io/address/0xdA3Db417CEF41d8289df2db62d4752801D1dcb42?tab=read_write_contract
+**FlowScan URL:**
+https://evm-testnet.flowscan.org/address/0x198DD9d62c751937f0DF86c0e451F753858358f3
+
+**Legacy Contract (FLOW only):**
+0xdA3Db417CEF41d8289df2db62d4752801D1dcb42
 
 ## 📱 React Native Integration Ready
 

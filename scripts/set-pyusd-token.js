@@ -4,8 +4,8 @@ async function main() {
   // FlowEVM testnet PYUSD token address
   const PYUSD_TOKEN_ADDRESS = "0xd7d43ab7b365f0d0789aE83F4385fA710FfdC98F";
   
-  // Your deployed contract address
-  const CONTRACT_ADDRESS = "0xdA3Db417CEF41d8289df2db62d4752801D1dcb42";
+  // Your newly deployed multi-token contract address
+  const CONTRACT_ADDRESS = "0x198DD9d62c751937f0DF86c0e451F753858358f3";
 
   console.log("Setting PYUSD token address on OffGridPay contract...");
   console.log("Contract Address:", CONTRACT_ADDRESS);
