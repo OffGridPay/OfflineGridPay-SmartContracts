@@ -26,7 +26,7 @@ access(all) fun main(): {String: AnyStruct} {
     results["validAmountCheck"] = validAmount
     results["invalidAmountCheck"] = invalidAmount
     
-    let validSignature = LINProtocolComplete.isValidSignatureFormat(signature: "a".repeat(128))
+    let validSignature = LINProtocolComplete.isValidSignatureFormat(signature: "abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890")
     let invalidSignature = LINProtocolComplete.isValidSignatureFormat(signature: "abc")
     results["validSignatureFormat"] = validSignature
     results["invalidSignatureFormat"] = invalidSignature
@@ -73,7 +73,7 @@ access(all) fun main(): {String: AnyStruct} {
         amount: 10.0,
         timestamp: testTimestamp,
         nonce: testNonce,
-        signature: "sample_signature_".concat("a".repeat(100))
+        signature: "sample_signature_abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890"
     )
     
     results["sampleTransactionId"] = sampleTransaction.id
