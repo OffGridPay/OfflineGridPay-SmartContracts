@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title offgridpay
@@ -16,6 +17,7 @@ contract offgridpay is ReentrancyGuard, Ownable {
 
     // Protocol constants
     uint256 public constant MINIMUM_FLOW_DEPOSIT = 10 ether;
+    uint256 public constant MINIMUM_PYUSD_DEPOSIT = 10 * 10**6; // 10 PYUSD (6 decimals)
     uint256 public constant AUTO_REFILL_THRESHOLD = 1 ether;
     uint256 public constant MAX_BATCH_SIZE = 100;
     uint256 public constant TRANSACTION_VALIDITY_HOURS = 24;
@@ -25,6 +27,12 @@ contract offgridpay is ReentrancyGuard, Ownable {
     uint256 public constant MAX_NONCE_SKIP = 10;
     uint256 public constant MAX_SIGNATURE_LENGTH = 256;
     uint256 public constant MIN_SIGNATURE_LENGTH = 64;
+
+    // Supported token types
+    enum TokenType {
+        FLOW,
+        PYUSD
+    }
 
     // Transaction status enumeration
     enum TransactionStatus {
@@ -44,6 +52,7 @@ contract offgridpay is ReentrancyGuard, Ownable {
         uint256 nonce;
         bytes signature;
         TransactionStatus status;
+        TokenType tokenType;
     }
 
     // Transaction batch structure
@@ -57,8 +66,10 @@ contract offgridpay is ReentrancyGuard, Ownable {
 
     // User account structure
     struct UserAccount {
-        uint256 balance;
+        uint256 flowBalance;
+        uint256 pyusdBalance;
         uint256 flowDeposit;
+        uint256 pyusdDeposit;
         uint256 nonce;
         uint256 lastSyncTime;
         bool isActive;
@@ -69,17 +80,24 @@ contract offgridpay is ReentrancyGuard, Ownable {
     uint256 public totalUsers;
     uint256 public totalTransactions;
     uint256 public totalFlowDeposited;
+    uint256 public totalPyusdDeposited;
+    
+    // PYUSD token contract address (to be set by owner)
+    IERC20 public pyusdToken;
     
     mapping(string => bool) public processedTransactions;
     mapping(address => UserAccount) public userAccounts;
     mapping(address => bool) public registeredUsers;
 
     // Events
-    event AccountInitialized(address indexed user, uint256 flowDeposit);
+    event AccountInitialized(address indexed user, uint256 flowDeposit, uint256 pyusdDeposit);
     event AccountDeactivated(address indexed user);
     event AccountReactivated(address indexed user);
     event FlowDepositAdded(address indexed user, uint256 amount);
     event FlowDepositWithdrawn(address indexed user, uint256 amount);
+    event PyusdDepositAdded(address indexed user, uint256 amount);
+    event PyusdDepositWithdrawn(address indexed user, uint256 amount);
+    event PyusdTokenSet(address indexed tokenAddress);
     event OfflineTransactionCreated(string indexed txId, address indexed from, address indexed to, uint256 amount);
     event OfflineTransactionExecuted(string indexed txId, address indexed from, address indexed to, uint256 amount);
     event OfflineTransactionFailed(string indexed txId, address indexed from, string reason);
@@ -104,6 +122,16 @@ contract offgridpay is ReentrancyGuard, Ownable {
         totalUsers = 0;
         totalTransactions = 0;
         totalFlowDeposited = 0;
+        totalPyusdDeposited = 0;
+    }
+
+    /**
+     * @dev Set PYUSD token contract address (only owner)
+     */
+    function setPyusdToken(address _pyusdToken) external onlyOwner {
+        require(_pyusdToken != address(0), "Invalid token address");
+        pyusdToken = IERC20(_pyusdToken);
+        emit PyusdTokenSet(_pyusdToken);
     }
 
     /**
@@ -114,27 +142,89 @@ contract offgridpay is ReentrancyGuard, Ownable {
         require(!registeredUsers[msg.sender], "Account already initialized");
 
         UserAccount storage account = userAccounts[msg.sender];
-        account.balance = 0;
+        account.flowBalance = 0;
+        account.pyusdBalance = 0;
         account.flowDeposit = msg.value;
+        account.pyusdDeposit = 0;
         account.nonce = 0;
         account.lastSyncTime = block.timestamp;
         account.isActive = true;
-        account.publicKeyAddress = msg.sender; // Using sender address as public key
+        account.publicKeyAddress = msg.sender;
 
         registeredUsers[msg.sender] = true;
         totalUsers++;
         totalFlowDeposited += msg.value;
 
-        emit AccountInitialized(msg.sender, msg.value);
+        emit AccountInitialized(msg.sender, msg.value, 0);
         emit PublicKeyRegistered(msg.sender);
     }
 
     /**
-     * @dev Add Flow deposit to user account
+     * @dev Initialize user account with PYUSD deposit
+     */
+    function initializeAccountWithPyusd(uint256 amount) external {
+        require(address(pyusdToken) != address(0), "PYUSD token not set");
+        require(amount >= MINIMUM_PYUSD_DEPOSIT, ERROR_INSUFFICIENT_DEPOSIT);
+        require(!registeredUsers[msg.sender], "Account already initialized");
+
+        // Transfer PYUSD from user to contract
+        require(pyusdToken.transferFrom(msg.sender, address(this), amount), "PYUSD transfer failed");
+
+        UserAccount storage account = userAccounts[msg.sender];
+        account.flowBalance = 0;
+        account.pyusdBalance = 0;
+        account.flowDeposit = 0;
+        account.pyusdDeposit = amount;
+        account.nonce = 0;
+        account.lastSyncTime = block.timestamp;
+        account.isActive = true;
+        account.publicKeyAddress = msg.sender;
+
+        registeredUsers[msg.sender] = true;
+        totalUsers++;
+        totalPyusdDeposited += amount;
+
+        emit AccountInitialized(msg.sender, 0, amount);
+        emit PublicKeyRegistered(msg.sender);
+    }
+
+    /**
+     * @dev Initialize user account with both Flow and PYUSD deposits
+     */
+    function initializeAccountWithBoth(uint256 pyusdAmount) external payable {
+        require(address(pyusdToken) != address(0), "PYUSD token not set");
+        require(msg.value >= MINIMUM_FLOW_DEPOSIT, ERROR_INSUFFICIENT_DEPOSIT);
+        require(pyusdAmount >= MINIMUM_PYUSD_DEPOSIT, ERROR_INSUFFICIENT_DEPOSIT);
+        require(!registeredUsers[msg.sender], "Account already initialized");
+
+        // Transfer PYUSD from user to contract
+        require(pyusdToken.transferFrom(msg.sender, address(this), pyusdAmount), "PYUSD transfer failed");
+
+        UserAccount storage account = userAccounts[msg.sender];
+        account.flowBalance = 0;
+        account.pyusdBalance = 0;
+        account.flowDeposit = msg.value;
+        account.pyusdDeposit = pyusdAmount;
+        account.nonce = 0;
+        account.lastSyncTime = block.timestamp;
+        account.isActive = true;
+        account.publicKeyAddress = msg.sender;
+
+        registeredUsers[msg.sender] = true;
+        totalUsers++;
+        totalFlowDeposited += msg.value;
+        totalPyusdDeposited += pyusdAmount;
+
+        emit AccountInitialized(msg.sender, msg.value, pyusdAmount);
+        emit PublicKeyRegistered(msg.sender);
+    }
+
+    /**
+     * @dev Add Flow deposit to existing account
      */
     function addFlowDeposit() external payable {
         require(registeredUsers[msg.sender], "Account not initialized");
-        require(msg.value > 0, "Deposit must be greater than 0");
+        require(msg.value > 0, "Deposit amount must be greater than 0");
 
         UserAccount storage account = userAccounts[msg.sender];
         account.flowDeposit += msg.value;
@@ -144,19 +234,54 @@ contract offgridpay is ReentrancyGuard, Ownable {
     }
 
     /**
+     * @dev Add PYUSD deposit to existing account
+     */
+    function addPyusdDeposit(uint256 amount) external {
+        require(address(pyusdToken) != address(0), "PYUSD token not set");
+        require(registeredUsers[msg.sender], "Account not initialized");
+        require(amount > 0, "Deposit amount must be greater than 0");
+
+        // Transfer PYUSD from user to contract
+        require(pyusdToken.transferFrom(msg.sender, address(this), amount), "PYUSD transfer failed");
+
+        UserAccount storage account = userAccounts[msg.sender];
+        account.pyusdDeposit += amount;
+        totalPyusdDeposited += amount;
+
+        emit PyusdDepositAdded(msg.sender, amount);
+    }
+
+    /**
      * @dev Withdraw Flow deposit from user account
      */
     function withdrawFlowDeposit(uint256 amount) external nonReentrant {
         require(registeredUsers[msg.sender], "Account not initialized");
         UserAccount storage account = userAccounts[msg.sender];
         require(account.flowDeposit >= amount, "Insufficient deposit balance");
+        require(account.flowBalance == 0, "Cannot withdraw deposit with pending balance");
 
         account.flowDeposit -= amount;
         totalFlowDeposited -= amount;
 
         payable(msg.sender).transfer(amount);
-
         emit FlowDepositWithdrawn(msg.sender, amount);
+    }
+
+    /**
+     * @dev Withdraw PYUSD deposit from user account
+     */
+    function withdrawPyusdDeposit(uint256 amount) external nonReentrant {
+        require(address(pyusdToken) != address(0), "PYUSD token not set");
+        require(registeredUsers[msg.sender], "Account not initialized");
+        UserAccount storage account = userAccounts[msg.sender];
+        require(account.pyusdDeposit >= amount, "Insufficient deposit balance");
+        require(account.pyusdBalance == 0, "Cannot withdraw deposit with pending balance");
+
+        account.pyusdDeposit -= amount;
+        totalPyusdDeposited -= amount;
+
+        require(pyusdToken.transfer(msg.sender, amount), "PYUSD transfer failed");
+        emit PyusdDepositWithdrawn(msg.sender, amount);
     }
 
     /**
@@ -284,18 +409,28 @@ contract offgridpay is ReentrancyGuard, Ownable {
             return false;
         }
 
-        // Check sender balance
+        // Check sender balance based on token type
         UserAccount storage senderAccount = userAccounts[transaction.from];
-        if (senderAccount.balance < transaction.amount) {
-            emit OfflineTransactionFailed(transaction.id, transaction.from, ERROR_INSUFFICIENT_BALANCE);
-            return false;
-        }
-
-        // Execute transaction
         UserAccount storage recipientAccount = userAccounts[transaction.to];
         
-        senderAccount.balance -= transaction.amount;
-        recipientAccount.balance += transaction.amount;
+        if (transaction.tokenType == TokenType.FLOW) {
+            if (senderAccount.flowBalance < transaction.amount) {
+                emit OfflineTransactionFailed(transaction.id, transaction.from, ERROR_INSUFFICIENT_BALANCE);
+                return false;
+            }
+            // Execute FLOW transaction
+            senderAccount.flowBalance -= transaction.amount;
+            recipientAccount.flowBalance += transaction.amount;
+        } else if (transaction.tokenType == TokenType.PYUSD) {
+            if (senderAccount.pyusdBalance < transaction.amount) {
+                emit OfflineTransactionFailed(transaction.id, transaction.from, ERROR_INSUFFICIENT_BALANCE);
+                return false;
+            }
+            // Execute PYUSD transaction
+            senderAccount.pyusdBalance -= transaction.amount;
+            recipientAccount.pyusdBalance += transaction.amount;
+        }
+        
         senderAccount.nonce = transaction.nonce;
 
         // Mark transaction as processed
@@ -330,22 +465,40 @@ contract offgridpay is ReentrancyGuard, Ownable {
     }
 
     /**
-     * @dev Update user balance (only for testing/admin purposes)
+     * @dev Update user FLOW balance (only for testing/admin purposes)
      */
-    function updateBalance(address user, uint256 newBalance) external onlyOwner {
+    function updateFlowBalance(address user, uint256 newBalance) external onlyOwner {
         require(registeredUsers[user], "Account not initialized");
         
         UserAccount storage account = userAccounts[user];
-        account.balance = newBalance;
+        account.flowBalance = newBalance;
+    }
+
+    /**
+     * @dev Update user PYUSD balance (only for testing/admin purposes)
+     */
+    function updatePyusdBalance(address user, uint256 newBalance) external onlyOwner {
+        require(registeredUsers[user], "Account not initialized");
+        
+        UserAccount storage account = userAccounts[user];
+        account.pyusdBalance = newBalance;
     }
 
     // View functions
-    function getBalance(address user) external view returns (uint256) {
-        return userAccounts[user].balance;
+    function getFlowBalance(address user) external view returns (uint256) {
+        return userAccounts[user].flowBalance;
     }
 
-    function getDepositBalance(address user) external view returns (uint256) {
+    function getPyusdBalance(address user) external view returns (uint256) {
+        return userAccounts[user].pyusdBalance;
+    }
+
+    function getFlowDepositBalance(address user) external view returns (uint256) {
         return userAccounts[user].flowDeposit;
+    }
+
+    function getPyusdDepositBalance(address user) external view returns (uint256) {
+        return userAccounts[user].pyusdDeposit;
     }
 
     function getUserNonce(address user) external view returns (uint256) {
@@ -362,6 +515,54 @@ contract offgridpay is ReentrancyGuard, Ownable {
 
     function isTransactionProcessed(string memory txId) external view returns (bool) {
         return processedTransactions[txId];
+    }
+
+    /**
+     * @dev Deposit FLOW tokens from deposit to balance (for offline transactions)
+     */
+    function depositFlowToBalance(uint256 amount) external {
+        require(registeredUsers[msg.sender], "Account not initialized");
+        UserAccount storage account = userAccounts[msg.sender];
+        require(account.flowDeposit >= amount, "Insufficient deposit balance");
+
+        account.flowDeposit -= amount;
+        account.flowBalance += amount;
+    }
+
+    /**
+     * @dev Deposit PYUSD tokens from deposit to balance (for offline transactions)
+     */
+    function depositPyusdToBalance(uint256 amount) external {
+        require(registeredUsers[msg.sender], "Account not initialized");
+        UserAccount storage account = userAccounts[msg.sender];
+        require(account.pyusdDeposit >= amount, "Insufficient deposit balance");
+
+        account.pyusdDeposit -= amount;
+        account.pyusdBalance += amount;
+    }
+
+    /**
+     * @dev Withdraw FLOW tokens from balance back to deposit
+     */
+    function withdrawFlowToDeposit(uint256 amount) external {
+        require(registeredUsers[msg.sender], "Account not initialized");
+        UserAccount storage account = userAccounts[msg.sender];
+        require(account.flowBalance >= amount, "Insufficient balance");
+
+        account.flowBalance -= amount;
+        account.flowDeposit += amount;
+    }
+
+    /**
+     * @dev Withdraw PYUSD tokens from balance back to deposit
+     */
+    function withdrawPyusdToDeposit(uint256 amount) external {
+        require(registeredUsers[msg.sender], "Account not initialized");
+        UserAccount storage account = userAccounts[msg.sender];
+        require(account.pyusdBalance >= amount, "Insufficient balance");
+
+        account.pyusdBalance -= amount;
+        account.pyusdDeposit += amount;
     }
 
     /**
