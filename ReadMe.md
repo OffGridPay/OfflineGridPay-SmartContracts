@@ -16,10 +16,6 @@
 
 OffGridPay enables secure offline payments in mobile applications with seamless blockchain synchronization. Perfect for React Native apps that need to work in areas with poor connectivity. The system maintains transaction integrity through cryptographic signatures and manages gas costs via FLOW token deposits.
 
-
-
-OffGridPay is specifically designed for React Native mobile applications that need to work in areas with poor connectivity.
-
 ### Key Features
 ✅ **Offline Transaction Processing**: Create and store transactions without internet  
 ✅ **Batch Synchronization**: Sync multiple transactions when connection is restored  
