@@ -67,8 +67,6 @@ PRIVATE_KEY=your_private_key_here
 REPORT_GAS=true
 ```
 
-## 🔧 React Native Integration Guide
-
 ### Contract Information
 - **Contract Name:** `OffGridPayEVM`
 - **Network:** FlowEVM Testnet
