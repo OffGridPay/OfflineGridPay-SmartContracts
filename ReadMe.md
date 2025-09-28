@@ -233,45 +233,6 @@ const getUserAccount = async (userAddress) => {
 - **Local Data Encryption**: AsyncStorage data should be encrypted
 - **Reentrancy Protection**: All state-changing functions are protected
 
-## 📱 React Native Best Practices
-
-### Secure Key Management
-```javascript
-import * as Keychain from 'react-native-keychain';
-
-// Store private key securely
-export const storePrivateKey = async (privateKey) => {
-  await Keychain.setInternetCredentials(
-    'OffGridPay',
-    'wallet',
-    privateKey
-  );
-};
-
-// Retrieve private key
-export const getPrivateKey = async () => {
-  const credentials = await Keychain.getInternetCredentials('OffGridPay');
-  return credentials ? credentials.password : null;
-};
-```
-
-### Network Status Handling
-```javascript
-import NetInfo from '@react-native-netinfo';
-
-// Check connectivity and sync when online
-export const handleConnectivityChange = (isConnected) => {
-  if (isConnected) {
-    syncOfflineTransactions();
-  }
-};
-
-// Subscribe to network changes
-NetInfo.addEventListener(state => {
-  handleConnectivityChange(state.isConnected);
-});
-```
-
 ## 🧪 Testing Your Integration
 
 Test your React Native integration:
