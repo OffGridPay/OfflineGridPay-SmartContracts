@@ -73,30 +73,6 @@ REPORT_GAS=true
 - **Chain ID:** 545
 - **RPC URL:** `https://testnet.evm.nodes.onflow.org`
 
-### Required Dependencies
-```bash
-# For React Native projects
-npm install ethers @react-native-async-storage/async-storage react-native-keychain @react-native-netinfo/netinfo
-
-# For iOS
-cd ios && pod install
-```
-
-### Basic Setup
-```javascript
-import { ethers } from 'ethers';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Keychain from 'react-native-keychain';
-
-// Contract configuration
-const CONTRACT_ADDRESS = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
-const CONTRACT_ABI = [...]; // From artifacts/contracts/OffGridPayEVM.sol/OffGridPayEVM.json
-
-// Initialize provider and contract
-const provider = new ethers.JsonRpcProvider('https://testnet.evm.nodes.onflow.org');
-const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-```
-
 ### 📋 Core Contract Functions
 
 #### Account Management
