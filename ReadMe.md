@@ -233,14 +233,6 @@ const getUserAccount = async (userAddress) => {
 - **Local Data Encryption**: AsyncStorage data should be encrypted
 - **Reentrancy Protection**: All state-changing functions are protected
 
-## 🧪 Testing Your Integration
-
-Test your React Native integration:
-1. **Offline Mode**: Disable network and create transactions
-2. **Sync Testing**: Re-enable network and verify sync works
-3. **Security Testing**: Test with invalid signatures
-4. **Edge Cases**: Test with insufficient balance, expired transactions
-
 ```bash
 # Run smart contract tests
 npm test
